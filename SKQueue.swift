@@ -38,7 +38,14 @@ private func ev_create(ident ident: UInt, filter: Int16, flags: UInt16, fflags: 
 
 // MARK: - SKQueueDelegate
 protocol SKQueueDelegate {
-    func receivedNotification(queue: SKQueue, _ noteName: String, forPath path: String)
+    func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String)
+    func receivedNotification(queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
+}
+
+extension SKQueueDelegate {
+    func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
+        notification.toStrings().forEach { self.receivedNotification(queue, $0, forPath: path) }
+    }
 }
 
 // MARK: - SKQueueNotificationString
@@ -102,7 +109,7 @@ private class SKQueuePath {
 // MARK: - SKQueue
 class SKQueue {
     private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
-    var delegate: SKQueueDelegate?, alwaysPostNotifications = false
+    var delegate: SKQueueDelegate?
     
     init?() {
         kqueueId = kqueue()
@@ -159,15 +166,9 @@ class SKQueue {
             let n = kevent(fd, nil, 0, &ev, 1, &timeout)
             if n > 0 && ev.filter == Int16(EVFILT_VNODE) && ev.fflags != 0 {
                 let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(COpaquePointer(ev.udata)).takeUnretainedValue()
-                let notifications = SKQueueNotification(rawValue: ev.fflags).toStrings()
-                NSWorkspace.sharedWorkspace().noteFileSystemChanged(pathEntry.path)
+                let notification = SKQueueNotification(rawValue: ev.fflags)
                 dispatch_async(dispatch_get_main_queue()) {
-                    for notification in notifications {
-                        self.delegate?.receivedNotification(self, notification.rawValue, forPath: pathEntry.path)
-                        if self.delegate == nil || self.alwaysPostNotifications {
-                            NSWorkspace.sharedWorkspace().notificationCenter.postNotificationName(notification.rawValue, object: self, userInfo: ["path": pathEntry.path])
-                        }
-                    }
+                    self.delegate?.receivedNotification(self, notification, forPath: pathEntry.path)
                 }
             }
         }
