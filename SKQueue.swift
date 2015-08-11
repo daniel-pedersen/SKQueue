@@ -22,11 +22,10 @@
 //	   distribution.
 //
 
-import Foundation
 import AppKit
 import Darwin
 
-private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutablePointer<Void>) -> kevent {
+private func ev_create(ident ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutablePointer<Void>) -> kevent {
     var ev = kevent()
     ev.ident = ident
     ev.filter = filter
@@ -43,14 +42,14 @@ protocol SKQueueDelegate {
 }
 
 // MARK: - SKQueueNotificationString
-private enum SKQueueNotificationString: String {
-    case Rename = "SKQueueFileRenamedNotification"
-    case Write = "SKQueueFileWrittenToNotification"
-    case Delete = "SKQueueFileDeletedNotification"
-    case AttributeChange = "SKQueueFileAttributesChangedNotification"
-    case SizeIncrease = "SKQueueFileSizeIncreasedNotification"
-    case LinkCountChange = "SKQueueLinkCountChangedNotification"
-    case AccessRevocation = "SKQueueAccessWasRevokedNotification"
+enum SKQueueNotificationString: String {
+    case Rename
+    case Write
+    case Delete
+    case AttributeChange
+    case SizeIncrease
+    case LinkCountChange
+    case AccessRevocation
 }
 
 // MARK: - SKQueueNotification
@@ -94,8 +93,8 @@ private class SKQueuePath {
     }
     
     deinit {
-        if fileDescriptor >= 0 {
-            close(fileDescriptor)
+        if self.fileDescriptor >= 0 {
+            close(self.fileDescriptor)
         }
     }
 }
@@ -135,12 +134,12 @@ class SKQueue {
         
         var nullts = timespec(tv_sec: 0, tv_nsec: 0)
         var ev = ev_create(
-            UInt(pathEntry!.fileDescriptor),
+            ident: UInt(pathEntry!.fileDescriptor),
             filter: Int16(EVFILT_VNODE),
             flags: UInt16(EV_ADD | EV_ENABLE | EV_CLEAR),
             fflags: notification.rawValue,
             data: 0,
-            udata: UnsafeMutablePointer<Void>(Unmanaged<SKQueuePath>.passRetained(pathEntry!).toOpaque())
+            udata: UnsafeMutablePointer<Void>(Unmanaged<SKQueuePath>.passRetained(watchedPaths[path]!).toOpaque())
         )
         
         kevent(kqueueId, &ev, 1, nil, 0, &nullts)
@@ -179,10 +178,8 @@ class SKQueue {
     }
     
     func addPath(path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
-        if watchedPaths[path] == nil {
-            if addPathToQueue(path, notifyingAbout: notification) == nil {
-                NSLog("SKQueue tried to add the path %@ to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.", path)
-            }
+        if addPathToQueue(path, notifyingAbout: notification) == nil {
+            NSLog("SKQueue tried to add the path %@ to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.", path)
         }
     }
     
