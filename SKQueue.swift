@@ -23,10 +23,9 @@
 //
 
 import Foundation
-import AppKit
 import Darwin
 
-private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutablePointer<Void>) -> kevent {
+private func ev_create(ident ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutablePointer<Void>) -> kevent {
     var ev = kevent()
     ev.ident = ident
     ev.filter = filter
@@ -39,18 +38,25 @@ private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32
 
 // MARK: - SKQueueDelegate
 protocol SKQueueDelegate {
-    func receivedNotification(queue: SKQueue, _ noteName: String, forPath path: String)
+    func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String)
+    func receivedNotification(queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
+}
+
+extension SKQueueDelegate {
+    func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
+        notification.toStrings().forEach { self.receivedNotification(queue, $0, forPath: path) }
+    }
 }
 
 // MARK: - SKQueueNotificationString
-private enum SKQueueNotificationString: String {
-    case Rename = "SKQueueFileRenamedNotification"
-    case Write = "SKQueueFileWrittenToNotification"
-    case Delete = "SKQueueFileDeletedNotification"
-    case AttributeChange = "SKQueueFileAttributesChangedNotification"
-    case SizeIncrease = "SKQueueFileSizeIncreasedNotification"
-    case LinkCountChange = "SKQueueLinkCountChangedNotification"
-    case AccessRevocation = "SKQueueAccessWasRevokedNotification"
+enum SKQueueNotificationString: String {
+    case Rename
+    case Write
+    case Delete
+    case AttributeChange
+    case SizeIncrease
+    case LinkCountChange
+    case AccessRevocation
 }
 
 // MARK: - SKQueueNotification
@@ -94,8 +100,8 @@ private class SKQueuePath {
     }
     
     deinit {
-        if fileDescriptor >= 0 {
-            close(fileDescriptor)
+        if self.fileDescriptor >= 0 {
+            close(self.fileDescriptor)
         }
     }
 }
@@ -103,7 +109,7 @@ private class SKQueuePath {
 // MARK: - SKQueue
 class SKQueue {
     private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
-    var delegate: SKQueueDelegate?, alwaysPostNotifications = false
+    var delegate: SKQueueDelegate?
     
     init?() {
         kqueueId = kqueue()
@@ -135,12 +141,12 @@ class SKQueue {
         
         var nullts = timespec(tv_sec: 0, tv_nsec: 0)
         var ev = ev_create(
-            UInt(pathEntry!.fileDescriptor),
+            ident: UInt(pathEntry!.fileDescriptor),
             filter: Int16(EVFILT_VNODE),
             flags: UInt16(EV_ADD | EV_ENABLE | EV_CLEAR),
             fflags: notification.rawValue,
             data: 0,
-            udata: UnsafeMutablePointer<Void>(Unmanaged<SKQueuePath>.passRetained(pathEntry!).toOpaque())
+            udata: UnsafeMutablePointer<Void>(Unmanaged<SKQueuePath>.passRetained(watchedPaths[path]!).toOpaque())
         )
         
         kevent(kqueueId, &ev, 1, nil, 0, &nullts)
@@ -160,15 +166,9 @@ class SKQueue {
             let n = kevent(fd, nil, 0, &ev, 1, &timeout)
             if n > 0 && ev.filter == Int16(EVFILT_VNODE) && ev.fflags != 0 {
                 let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(COpaquePointer(ev.udata)).takeUnretainedValue()
-                let notifications = SKQueueNotification(rawValue: ev.fflags).toStrings()
-                NSWorkspace.sharedWorkspace().noteFileSystemChanged(pathEntry.path)
+                let notification = SKQueueNotification(rawValue: ev.fflags)
                 dispatch_async(dispatch_get_main_queue()) {
-                    for notification in notifications {
-                        self.delegate?.receivedNotification(self, notification.rawValue, forPath: pathEntry.path)
-                        if self.delegate == nil || self.alwaysPostNotifications {
-                            NSWorkspace.sharedWorkspace().notificationCenter.postNotificationName(notification.rawValue, object: self, userInfo: ["path": pathEntry.path])
-                        }
-                    }
+                    self.delegate?.receivedNotification(self, notification, forPath: pathEntry.path)
                 }
             }
         }
@@ -179,19 +179,19 @@ class SKQueue {
     }
     
     func addPath(path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
-        if watchedPaths[path] == nil {
-            if addPathToQueue(path, notifyingAbout: notification) == nil {
-                NSLog("SKQueue tried to add the path %@ to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.", path)
-            }
+        if addPathToQueue(path, notifyingAbout: notification) == nil {
+            NSLog("SKQueue tried to add the path %@ to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.", path)
         }
     }
     
     func removePath(path: String) {
-        watchedPaths.removeValueForKey(path)
+        if let pathEntry = watchedPaths.removeValueForKey(path) {
+            Unmanaged<SKQueuePath>.passUnretained(pathEntry).release()
+        }
     }
     
     func removeAllPaths() {
-        watchedPaths.removeAll()
+        watchedPaths.keys.forEach(removePath)
     }
     
     func numberOfWatchedPaths() -> Int {
