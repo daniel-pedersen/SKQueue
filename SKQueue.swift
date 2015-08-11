@@ -22,7 +22,7 @@
 //	   distribution.
 //
 
-import AppKit
+import Foundation
 import Darwin
 
 private func ev_create(ident ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutablePointer<Void>) -> kevent {
