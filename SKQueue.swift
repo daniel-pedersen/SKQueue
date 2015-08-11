@@ -185,11 +185,13 @@ class SKQueue {
     }
     
     func removePath(path: String) {
-        watchedPaths.removeValueForKey(path)
+        if let pathEntry = watchedPaths.removeValueForKey(path) {
+            Unmanaged<SKQueuePath>.passUnretained(pathEntry).release()
+        }
     }
     
     func removeAllPaths() {
-        watchedPaths.removeAll()
+        watchedPaths.keys.forEach(removePath)
     }
     
     func numberOfWatchedPaths() -> Int {
