@@ -6,26 +6,26 @@
 //
 //  Port of VDKQueue to Swift. VDKQueue was created and copyrighted by Bryan D K Jones on 28 March 2012.
 //
-//	This software is provided 'as-is', without any express or implied
-//	warranty. In no event will the authors be held liable for any damages
-//	arising from the use of this software.
-//	Permission is granted to anyone to use this software for any purpose,
-//	including commercial applications, and to alter it and redistribute it
-//	freely, subject to the following restrictions:
-//	   1. The origin of this software must not be misrepresented; you must not
-//	   claim that you wrote the original software. If you use this software
-//	   in a product, an acknowledgment in the product documentation would be
-//	   appreciated but is not required.
-//	   2. Altered source versions must be plainly marked as such, and must not be
-//	   misrepresented as being the original software.
-//	   3. This notice may not be removed or altered from any source
-//	   distribution.
+//  This software is provided 'as-is', without any express or implied
+//  warranty. In no event will the authors be held liable for any damages
+//  arising from the use of this software.
+//  Permission is granted to anyone to use this software for any purpose,
+//  including commercial applications, and to alter it and redistribute it
+//  freely, subject to the following restrictions:
+//     1. The origin of this software must not be misrepresented; you must not
+//     claim that you wrote the original software. If you use this software
+//     in a product, an acknowledgment in the product documentation would be
+//     appreciated but is not required.
+//     2. Altered source versions must be plainly marked as such, and must not be
+//     misrepresented as being the original software.
+//     3. This notice may not be removed or altered from any source
+//     distribution.
 //
 
 import Foundation
 import Darwin
 
-private func ev_create(ident ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutablePointer<Void>) -> kevent {
+private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutableRawPointer) -> kevent {
     var ev = kevent()
     ev.ident = ident
     ev.filter = filter
@@ -44,7 +44,7 @@ protocol SKQueueDelegate {
 
 extension SKQueueDelegate {
     func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
-        notification.toStrings().forEach { self.receivedNotification(queue, $0, forPath: path) }
+      notification.toStrings().forEach { self.receivedNotification(queue: queue, $0, forPath: path) }
     }
 }
 
@@ -60,7 +60,7 @@ enum SKQueueNotificationString: String {
 }
 
 // MARK: - SKQueueNotification
-struct SKQueueNotification: OptionSetType {
+struct SKQueueNotification: OptionSet {
     let rawValue: UInt32
     
     static let None             = SKQueueNotification(rawValue: 0)
@@ -73,7 +73,7 @@ struct SKQueueNotification: OptionSetType {
     static let AccessRevocation = SKQueueNotification(rawValue: 1 << 6)
     static let Default          = SKQueueNotification(rawValue: 0x7F)
     
-    private func toStrings() -> [SKQueueNotificationString] {
+    func toStrings() -> [SKQueueNotificationString] {
         var s = [SKQueueNotificationString]()
         if contains(.Rename)           { s.append(.Rename) }
         if contains(.Write)            { s.append(.Write) }
@@ -146,14 +146,14 @@ class SKQueue {
             flags: UInt16(EV_ADD | EV_ENABLE | EV_CLEAR),
             fflags: notification.rawValue,
             data: 0,
-            udata: UnsafeMutablePointer<Void>(Unmanaged<SKQueuePath>.passRetained(watchedPaths[path]!).toOpaque())
+            udata: UnsafeMutableRawPointer(Unmanaged<SKQueuePath>.passRetained(watchedPaths[path]!).toOpaque())
         )
         
         kevent(kqueueId, &ev, 1, nil, 0, &nullts)
         
         if !keepWatcherThreadRunning {
             keepWatcherThreadRunning = true
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), watcherThread)
+          DispatchQueue.global(qos: .default).async(execute: watcherThread)
         }
         
         return pathEntry
@@ -165,27 +165,27 @@ class SKQueue {
         while (keepWatcherThreadRunning) {
             let n = kevent(fd, nil, 0, &ev, 1, &timeout)
             if n > 0 && ev.filter == Int16(EVFILT_VNODE) && ev.fflags != 0 {
-                let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(COpaquePointer(ev.udata)).takeUnretainedValue()
+                let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(UnsafeRawPointer(ev.udata)).takeUnretainedValue()
                 let notification = SKQueueNotification(rawValue: ev.fflags)
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.delegate?.receivedNotification(self, notification, forPath: pathEntry.path)
+                DispatchQueue.main.async {
+                  self.delegate?.receivedNotification(queue: self, notification, forPath: pathEntry.path)
                 }
             }
         }
         
         if close(fd) == -1 {
-            NSLog("SKQueue watcherThread: Couldn't close main kqueue (%d)", errno)
+            print("SKQueue watcherThread: Couldn't close main kqueue (\(errno))")
         }
     }
     
     func addPath(path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
-        if addPathToQueue(path, notifyingAbout: notification) == nil {
-            NSLog("SKQueue tried to add the path %@ to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.", path)
+        if addPathToQueue(path: path, notifyingAbout: notification) == nil {
+            print("SKQueue tried to add the path \(path) to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.")
         }
     }
     
     func removePath(path: String) {
-        if let pathEntry = watchedPaths.removeValueForKey(path) {
+        if let pathEntry = watchedPaths.removeValue(forKey: path) {
             Unmanaged<SKQueuePath>.passUnretained(pathEntry).release()
         }
     }
