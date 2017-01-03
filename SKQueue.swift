@@ -37,19 +37,19 @@ private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32
 }
 
 // MARK: - SKQueueDelegate
-protocol SKQueueDelegate {
+public protocol SKQueueDelegate {
     func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String)
     func receivedNotification(queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
 }
 
-extension SKQueueDelegate {
+public extension SKQueueDelegate {
     func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
       notification.toStrings().forEach { self.receivedNotification(queue: queue, $0, forPath: path) }
     }
 }
 
 // MARK: - SKQueueNotificationString
-enum SKQueueNotificationString: String {
+public enum SKQueueNotificationString: String {
     case Rename
     case Write
     case Delete
@@ -60,8 +60,12 @@ enum SKQueueNotificationString: String {
 }
 
 // MARK: - SKQueueNotification
-struct SKQueueNotification: OptionSet {
-    let rawValue: UInt32
+public struct SKQueueNotification: OptionSet {
+    public let rawValue: UInt32
+    
+    public init(rawValue: UInt32) {
+        self.rawValue = rawValue
+    }
     
     static let None             = SKQueueNotification(rawValue: 0)
     static let Rename           = SKQueueNotification(rawValue: 1 << 0)
@@ -107,7 +111,7 @@ private class SKQueuePath {
 }
 
 // MARK: - SKQueue
-class SKQueue {
+public class SKQueue {
     private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
     var delegate: SKQueueDelegate?
     
@@ -178,27 +182,27 @@ class SKQueue {
         }
     }
     
-    func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
+    public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
         if addPathToQueue(path: path, notifyingAbout: notification) == nil {
             print("SKQueue tried to add the path \(path) to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.")
         }
     }
     
-    func isPathWatched(path: String) -> Bool {
+    public func isPathWatched(path: String) -> Bool {
         return watchedPaths[path] != nil
     }
 
-    func removePath(_ path: String) {
+    public func removePath(_ path: String) {
         if let pathEntry = watchedPaths.removeValue(forKey: path) {
             Unmanaged<SKQueuePath>.passUnretained(pathEntry).release()
         }
     }
     
-    func removeAllPaths() {
+    public func removeAllPaths() {
         watchedPaths.keys.forEach(removePath)
     }
     
-    func numberOfWatchedPaths() -> Int {
+    public func numberOfWatchedPaths() -> Int {
         return watchedPaths.count
     }
 }
