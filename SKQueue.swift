@@ -113,9 +113,9 @@ private class SKQueuePath {
 // MARK: - SKQueue
 public class SKQueue {
     private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
-    var delegate: SKQueueDelegate?
+    public var delegate: SKQueueDelegate?
     
-    init?() {
+    public init?() {
         kqueueId = kqueue()
         if (kqueueId == -1) {
             return nil
