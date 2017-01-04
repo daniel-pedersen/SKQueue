@@ -160,6 +160,10 @@ class SKQueue {
         }
     }
     
+    func isPathWatched(path: String) -> Bool {
+        return watchedPaths[path] != nil
+    }
+
     func removePath(path: String) {
         if let pathEntry = watchedPaths.removeValueForKey(path) {
             Unmanaged<SKQueuePath>.passUnretained(pathEntry).release()
