@@ -14,14 +14,7 @@ private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32
 
 // MARK: - SKQueueDelegate
 protocol SKQueueDelegate {
-    func receivedNotification(_ queue: SKQueue, _ notification: SKQueueNotification, forPath path: String)
-    func receivedNotification(_ queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
-}
-
-extension SKQueueDelegate {
-    func receivedNotification(_ queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
-        notification.toStrings().forEach { self.receivedNotification(queue, $0, forPath: path) }
-    }
+    func receivedNotification(_ notification: SKQueueNotification, forPath path: String, queue: SKQueue)
 }
 
 // MARK: - SKQueueNotificationString
@@ -49,7 +42,7 @@ struct SKQueueNotification: OptionSet {
     static let AccessRevocation = SKQueueNotification(rawValue: 1 << 6)
     static let Default          = SKQueueNotification(rawValue: 0x7F)
     
-    fileprivate func toStrings() -> [SKQueueNotificationString] {
+    func toStrings() -> [SKQueueNotificationString] {
         var s = [SKQueueNotificationString]()
         if contains(.Rename)           { s.append(.Rename) }
         if contains(.Write)            { s.append(.Write) }
@@ -84,7 +77,7 @@ private class SKQueuePath {
 
 // MARK: - SKQueue
 class SKQueue {
-    fileprivate var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
+    private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
     var delegate: SKQueueDelegate?
     
     init?() {
@@ -99,7 +92,7 @@ class SKQueue {
         removeAllPaths()
     }
     
-    fileprivate func addPathToQueue(_ path: String, notifyingAbout notification: SKQueueNotification) -> SKQueuePath? {
+    private func addPathToQueue(_ path: String, notifyingAbout notification: SKQueueNotification) -> SKQueuePath? {
         var pathEntry = watchedPaths[path]
         
         if pathEntry != nil {
@@ -135,7 +128,7 @@ class SKQueue {
         return pathEntry
     }
     
-    fileprivate func watcherThread() {
+    private func watcherThread() {
         var ev = kevent(), timeout = timespec(tv_sec: 1, tv_nsec: 0), fd = kqueueId
         
         while (keepWatcherThreadRunning) {
@@ -144,7 +137,7 @@ class SKQueue {
                 let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(ev.udata).takeUnretainedValue()
                 let notification = SKQueueNotification(rawValue: ev.fflags)
                 DispatchQueue.global().async {
-                    self.delegate?.receivedNotification(self, notification, forPath: pathEntry.path)
+                    self.delegate?.receivedNotification(notification, forPath: pathEntry.path, queue: self)
                 }
             }
         }

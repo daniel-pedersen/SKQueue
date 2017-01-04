@@ -7,7 +7,7 @@ SKQueue is a simple and efficient Swift wrapper around kernel queues (kQueues). 
 ### Code
 ```swift
 class SomeClass: SKQueueDelegate {
-  func receivedNotification(queue: SKQueue, notification: SKQueueNotification, forPath path: String) {
+  func receivedNotification(_ notification: SKQueueNotification, forPath path: String, queue: SKQueue) {
     print("\(notification.toStrings().map { $0.rawValue }) @ \(path)")
   }
 }
