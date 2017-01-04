@@ -14,7 +14,7 @@ private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32
 
 // MARK: - SKQueueDelegate
 protocol SKQueueDelegate {
-    func receivedNotification(_ notification: SKQueueNotification, forPath path: String, queue: SKQueue)
+    func receivedNotification(_ notification: SKQueueNotification, path: String, queue: SKQueue)
 }
 
 // MARK: - SKQueueNotificationString
@@ -137,7 +137,7 @@ class SKQueue {
                 let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(ev.udata).takeUnretainedValue()
                 let notification = SKQueueNotification(rawValue: ev.fflags)
                 DispatchQueue.global().async {
-                    self.delegate?.receivedNotification(notification, forPath: pathEntry.path, queue: self)
+                    self.delegate?.receivedNotification(notification, path: pathEntry.path, queue: self)
                 }
             }
         }
