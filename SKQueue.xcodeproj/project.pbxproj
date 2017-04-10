@@ -7,10 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E251CEA91E9BB21C00B773F6 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = E251CEA81E9BB21C00B773F6 /* README.md */; };
 		__src_cc_ref_SKQueue.swift /* SKQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = __PBXFileRef_SKQueue.swift /* SKQueue.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E251CEA71E9BB21C00B773F6 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		E251CEA81E9BB21C00B773F6 /* README.md */ = {isa = PBXFileReference; explicitFileType = net.daringfireball.markdown; fileEncoding = 4; path = README.md; sourceTree = "<group>"; };
 		__PBXFileRef_Package.swift /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		__PBXFileRef_SKQueue.swift /* SKQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKQueue.swift; sourceTree = "<group>"; };
 		__PBXFileRef_SKQueue.xcodeproj/Configs/Project.xcconfig /* SKQueue.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SKQueue.xcconfig; path = SKQueue.xcodeproj/Configs/SKQueue.xcconfig; sourceTree = "<group>"; };
@@ -29,9 +32,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E251CEA61E9BB1A000B773F6 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				E251CEA71E9BB21C00B773F6 /* LICENSE */,
+				E251CEA81E9BB21C00B773F6 /* README.md */,
+			);
+			name = Documentation;
+			sourceTree = "<group>";
+		};
 		"___RootGroup_" = {
 			isa = PBXGroup;
 			children = (
+				E251CEA61E9BB1A000B773F6 /* Documentation */,
 				__PBXFileRef_Package.swift /* Package.swift */,
 				"_____Configs_" /* Configs */,
 				"_____Sources_" /* Sources */,
@@ -128,6 +141,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 0;
 			files = (
+				E251CEA91E9BB21C00B773F6 /* README.md in Sources */,
 				__src_cc_ref_SKQueue.swift /* SKQueue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
