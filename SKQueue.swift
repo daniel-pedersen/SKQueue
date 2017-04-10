@@ -14,14 +14,7 @@ private func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32
 
 // MARK: - SKQueueDelegate
 public protocol SKQueueDelegate {
-    func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String)
-    func receivedNotification(queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
-}
-
-public extension SKQueueDelegate {
-    func receivedNotification(queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
-      notification.toStrings().forEach { self.receivedNotification(queue: queue, $0, forPath: path) }
-    }
+    func receivedNotification(_ notification: SKQueueNotification, path: String, queue: SKQueue)
 }
 
 // MARK: - SKQueueNotificationString
@@ -70,7 +63,7 @@ public struct SKQueueNotification: OptionSet {
 private class SKQueuePath {
     var path: String, fileDescriptor: CInt, notification: SKQueueNotification
     
-    init?(path: String, notification: SKQueueNotification) {
+    init?(_ path: String, notification: SKQueueNotification) {
         self.path = path
         self.fileDescriptor = open((path as NSString).fileSystemRepresentation, O_EVTONLY, 0)
         self.notification = notification
@@ -112,7 +105,7 @@ public class SKQueue {
             }
             pathEntry!.notification.insert(notification)
         } else {
-            pathEntry = SKQueuePath(path: path, notification: notification)
+            pathEntry = SKQueuePath(path, notification: notification)
             if pathEntry == nil {
                 return nil
             }
@@ -159,12 +152,12 @@ public class SKQueue {
     }
     
     public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
-        if addPathToQueue(path: path, notifyingAbout: notification) == nil {
+        if addPathToQueue(path, notifyingAbout: notification) == nil {
             print("SKQueue tried to add the path \(path) to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.")
         }
     }
     
-    public func isPathWatched(path: String) -> Bool {
+    public func isPathWatched(_ path: String) -> Bool {
         return watchedPaths[path] != nil
     }
 
