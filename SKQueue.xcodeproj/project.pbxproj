@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E251CEA91E9BB21C00B773F6 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = E251CEA81E9BB21C00B773F6 /* README.md */; };
 		__src_cc_ref_SKQueue.swift /* SKQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = __PBXFileRef_SKQueue.swift /* SKQueue.swift */; };
 /* End PBXBuildFile section */
 
@@ -15,7 +14,7 @@
 		E251CEA71E9BB21C00B773F6 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		E251CEA81E9BB21C00B773F6 /* README.md */ = {isa = PBXFileReference; explicitFileType = net.daringfireball.markdown; fileEncoding = 4; path = README.md; sourceTree = "<group>"; };
 		__PBXFileRef_Package.swift /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
-		__PBXFileRef_SKQueue.swift /* SKQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKQueue.swift; sourceTree = "<group>"; };
+		__PBXFileRef_SKQueue.swift /* SKQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKQueue.swift; sourceTree = SOURCE_ROOT; };
 		__PBXFileRef_SKQueue.xcodeproj/Configs/Project.xcconfig /* SKQueue.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SKQueue.xcconfig; path = SKQueue.xcodeproj/Configs/SKQueue.xcconfig; sourceTree = "<group>"; };
 		__PBXFileRef_SKQueue_Info.plist /* SKQueue_Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = SKQueue_Info.plist; path = SKQueue.xcodeproj/SKQueue_Info.plist; sourceTree = SOURCE_ROOT; };
 		"_____Product_SKQueue" /* SKQueue.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SKQueue.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -141,7 +140,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 0;
 			files = (
-				E251CEA91E9BB21C00B773F6 /* README.md in Sources */,
 				__src_cc_ref_SKQueue.swift /* SKQueue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
