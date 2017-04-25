@@ -56,7 +56,9 @@ public struct SKQueueNotification: OptionSet {
 }
 
 class SKQueuePath {
-  var path: String, fileDescriptor: CInt, notification: SKQueueNotification
+  var path: String
+  var fileDescriptor: Int32
+  var notification: SKQueueNotification
 
   init?(_ path: String, notification: SKQueueNotification) {
     self.path = path
@@ -75,7 +77,9 @@ class SKQueuePath {
 }
 
 public class SKQueue {
-  private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
+  private var kqueueId: Int32
+  private var watchedPaths = [String: SKQueuePath]()
+  private var keepWatcherThreadRunning = false
   public var delegate: SKQueueDelegate?
 
   public init?(delegate: SKQueueDelegate? = nil) {
