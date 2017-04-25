@@ -78,11 +78,12 @@ public class SKQueue {
   private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
   public var delegate: SKQueueDelegate?
 
-  public init?() {
+  public init?(delegate: SKQueueDelegate? = nil) {
     kqueueId = kqueue()
     if (kqueueId == -1) {
       return nil
     }
+    self.delegate = delegate
   }
 
   deinit {
