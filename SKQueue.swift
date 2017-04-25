@@ -1,5 +1,4 @@
 import Foundation
-import Darwin
 
 func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutableRawPointer) -> kevent {
     var ev = kevent()
@@ -12,12 +11,10 @@ func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: 
     return ev
 }
 
-// MARK: - SKQueueDelegate
 public protocol SKQueueDelegate {
     func receivedNotification(_ notification: SKQueueNotification, path: String, queue: SKQueue)
 }
 
-// MARK: - SKQueueNotificationString
 public enum SKQueueNotificationString: String {
     case Rename
     case Write
@@ -28,7 +25,6 @@ public enum SKQueueNotificationString: String {
     case AccessRevocation
 }
 
-// MARK: - SKQueueNotification
 public struct SKQueueNotification: OptionSet {
     public let rawValue: UInt32
     
@@ -59,7 +55,6 @@ public struct SKQueueNotification: OptionSet {
     }
 }
 
-// MARK: - SKQueuePath
 class SKQueuePath {
     var path: String, fileDescriptor: CInt, notification: SKQueueNotification
     
@@ -79,7 +74,6 @@ class SKQueuePath {
     }
 }
 
-// MARK: - SKQueue
 public class SKQueue {
     private var kqueueId: CInt, watchedPaths = [String: SKQueuePath](), keepWatcherThreadRunning = false
     public var delegate: SKQueueDelegate?

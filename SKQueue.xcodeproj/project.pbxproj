@@ -45,6 +45,7 @@
 			children = (
 				E251CEA61E9BB1A000B773F6 /* Documentation */,
 				__PBXFileRef_Package.swift /* Package.swift */,
+				"_______Group_SKQueue" /* SKQueue */,
 				"_____Configs_" /* Configs */,
 				"_____Sources_" /* Sources */,
 				"____Products_" /* Products */,
@@ -70,7 +71,6 @@
 		"_____Sources_" /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				"_______Group_SKQueue" /* SKQueue */,
 			);
 			name = Sources;
 			sourceTree = "<group>";

@@ -4,4 +4,3 @@ let package = Package(
     name: "SKQueue",
     dependencies: []
 )
-
