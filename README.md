@@ -30,13 +30,11 @@ class SomeClass: SKQueueDelegate {
   }
 }
 
-if let queue = SKQueue() {
-  let delegate = SomeClass()
+let delegate = SomeClass()
+let queue = SKQueue(delegate: delegate)!
 
-  queue.delegate = delegate
-  queue.addPath("/some/file/or/directory")
-  queue.addPath("/some/other/file/or/directory")
-}
+queue.addPath("/some/file/or/directory")
+queue.addPath("/some/other/file/or/directory")
 ```
 
 #### Output samples
@@ -55,6 +53,10 @@ Write to file in `/directory/file` | `["Rename", "SizeIncrease"] @ /directory/fi
 5. Submit a pull request :D
 
 ## History
+
+### v1.1
+- Added method fileDescriptorForPath to SKQueue
+- Added delegate parameter to SKQueue initializer
 
 ### v1.0
 - New API (see example above)
