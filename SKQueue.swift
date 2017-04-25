@@ -173,4 +173,12 @@ public class SKQueue {
   public func numberOfWatchedPaths() -> Int {
     return watchedPaths.count
   }
+
+  public func fileDescriptorForPath(_ path: String) -> Int32 {
+    guard watchedPaths[path] != nil else {
+      return -1
+    }
+
+    return fcntl(watchedPaths[path]!.fileDescriptor, F_DUPFD)
+  }
 }
