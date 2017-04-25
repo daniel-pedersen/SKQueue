@@ -43,12 +43,11 @@
 		"___RootGroup_" = {
 			isa = PBXGroup;
 			children = (
-				E251CEA61E9BB1A000B773F6 /* Documentation */,
 				__PBXFileRef_Package.swift /* Package.swift */,
-				"_______Group_SKQueue" /* SKQueue */,
-				"_____Configs_" /* Configs */,
 				"_____Sources_" /* Sources */,
+				"_____Configs_" /* Configs */,
 				"____Products_" /* Products */,
+				E251CEA61E9BB1A000B773F6 /* Documentation */,
 			);
 			sourceTree = "<group>";
 		};
@@ -71,18 +70,10 @@
 		"_____Sources_" /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-			);
-			name = Sources;
-			sourceTree = "<group>";
-		};
-		"_______Group_SKQueue" /* SKQueue */ = {
-			isa = PBXGroup;
-			children = (
 				__PBXFileRef_SKQueue.swift /* SKQueue.swift */,
 				__PBXFileRef_SKQueue_Info.plist /* SKQueue_Info.plist */,
 			);
-			name = SKQueue;
-			path = .;
+			name = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
