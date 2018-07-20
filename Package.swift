@@ -1,6 +1,14 @@
+// swift-tools-version:4.0
+
 import PackageDescription
 
 let package = Package(
   name: "SKQueue",
-  dependencies: []
+  products: [
+    .library(name: "SKQueue", targets: ["SKQueue"])
+  ],
+  dependencies: [],
+  targets: [
+    .target(name: "SKQueue", path: ".", sources: ["SKQueue.swift"])
+  ]
 )

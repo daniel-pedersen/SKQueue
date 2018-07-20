@@ -95,12 +95,12 @@ public class SKQueue {
     removeAllPaths()
   }
 
-  private func addPathToQueue(_ path: String, notifyingAbout notification: SKQueueNotification) -> SKQueuePath? {
+  public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) -> Int32? {
     var pathEntry = watchedPaths[path]
-
+ 
     if pathEntry != nil {
       if pathEntry!.notification.contains(notification) {
-        return pathEntry
+        return pathEntry?.fileDescriptor
       }
       pathEntry!.notification.insert(notification)
     } else {
@@ -128,7 +128,7 @@ public class SKQueue {
       DispatchQueue.global().async(execute: watcherThread)
     }
 
-    return pathEntry
+    return pathEntry?.fileDescriptor
   }
 
   private func watcherThread() {
@@ -147,12 +147,6 @@ public class SKQueue {
 
     if close(fd) == -1 {
       NSLog("SKQueue watcherThread: Couldn't close main kqueue (%d)", errno)
-    }
-  }
-
-  public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
-    if addPathToQueue(path, notifyingAbout: notification) == nil {
-      NSLog("SKQueue tried to add the path \(path) to watchedPaths, but the SKQueuePath was nil. \nIt's possible that the host process has hit its max open file descriptors limit.")
     }
   }
 
