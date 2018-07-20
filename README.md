@@ -45,29 +45,3 @@ queue.addPath("/some/other/file/or/directory")
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
-
-## History
-
-### v1.1
-- Added method fileDescriptorForPath to SKQueue
-- Added delegate parameter to SKQueue initializer
-
-### v1.0
-- New API (see example above)
-- Removed extension of the SKQueueDelegate protocol (see below)
-
-### v0.9
-- Legacy API (see source)
-
-#### Migrating to v1.0
-The naming and ordering of parameters have changed, Xcode points this out at the appropriate locations.
-
-If you have been using the overloaded receivedNotification that takes strings, you need to manually extend SKQueueDelegate as follows
-```swift
-extension SKQueueDelegate {
-  func receivedNotification(_ queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
-  func receivedNotification(_ queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
-    notification.toStrings().forEach { self.receivedNotification(queue, $0, forPath: path) }
-  }
-}
-```
