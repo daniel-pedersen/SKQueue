@@ -9,7 +9,7 @@ SKQueue allocates one file descriptor per path watched and wraps the kernel even
 Add SKQueue to the dependencies array in your `Package.swift`. Then fetch dependencies with `swift package fetch`.
 ```swift
 dependencies: [
-  .package(url: "https://github.com/daniel-pedersen/SKQueue.git", from: "2.0.0")
+  .package(url: "https://github.com/daniel-pedersen/SKQueue.git", .branch("develop"))
 ]
 ```
 
