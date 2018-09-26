@@ -96,6 +96,7 @@ public class SKQueue {
   deinit {
     keepWatcherThreadRunning = false
     removeAllPaths()
+    close(kqueueId)
   }
 
   public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) -> Int32? {
@@ -146,10 +147,6 @@ public class SKQueue {
           self.delegate?.receivedNotification(notification, path: pathEntry.path, queue: self)
         }
       }
-    }
-
-    if close(fd) == -1 {
-      NSLog("SKQueue watcherThread: Couldn't close main kqueue (%d)", errno)
     }
   }
 
