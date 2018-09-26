@@ -1,16 +1,5 @@
 import Foundation
 
-func ev_create(ident: UInt, filter: Int16, flags: UInt16, fflags: UInt32, data: Int, udata: UnsafeMutableRawPointer) -> kevent {
-  var ev = kevent()
-  ev.ident = ident
-  ev.filter = filter
-  ev.flags = flags
-  ev.fflags = fflags
-  ev.data = data
-  ev.udata = udata
-  return ev
-}
-
 public protocol SKQueueDelegate {
   func receivedNotification(_ notification: SKQueueNotification, path: String, queue: SKQueue)
 }
@@ -61,36 +50,15 @@ public struct SKQueueNotification: OptionSet {
   }
 }
 
-class SKQueuePath {
-  var path: String
-  var fileDescriptor: Int32
-  var notification: SKQueueNotification
-
-  init?(_ path: String, notification: SKQueueNotification) {
-    self.path = path
-    self.fileDescriptor = open((path as NSString).fileSystemRepresentation, O_EVTONLY, 0)
-    self.notification = notification
-    if self.fileDescriptor < 0 {
-      return nil
-    }
-  }
-
-  deinit {
-    if self.fileDescriptor >= 0 {
-      close(self.fileDescriptor)
-    }
-  }
-}
-
 public class SKQueue {
-  private var kqueueId: Int32
-  private var watchedPaths = [String: SKQueuePath]()
+  private let kqueueId: Int32
+  private var watchedPaths = [String: Int32]()
   private var keepWatcherThreadRunning = false
   public var delegate: SKQueueDelegate?
 
   public init?(delegate: SKQueueDelegate? = nil) {
     kqueueId = kqueue()
-    if (kqueueId == -1) {
+    if kqueueId == -1 {
       return nil
     }
     self.delegate = delegate
@@ -102,52 +70,39 @@ public class SKQueue {
     close(kqueueId)
   }
 
-  public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) -> Int32? {
-    var pathEntry = watchedPaths[path]
- 
-    if pathEntry != nil {
-      if pathEntry!.notification.contains(notification) {
-        return pathEntry?.fileDescriptor
-      }
-      pathEntry!.notification.insert(notification)
-    } else {
-      pathEntry = SKQueuePath(path, notification: notification)
-      if pathEntry == nil {
-        return nil
-      }
-      watchedPaths[path] = pathEntry!
+  public func addPath(_ path: String, notifyingAbout notification: SKQueueNotification = SKQueueNotification.Default) {
+    var fileDescriptor: Int32! = watchedPaths[path]
+    if fileDescriptor == nil {
+      fileDescriptor = open(FileManager.default.fileSystemRepresentation(withPath: path), O_EVTONLY)
+      guard fileDescriptor >= 0 else { return }
+      watchedPaths[path] = fileDescriptor
     }
 
-    var nullts = timespec(tv_sec: 0, tv_nsec: 0)
-    var ev = ev_create(
-      ident: UInt(pathEntry!.fileDescriptor),
+    var edit = kevent(
+      ident: UInt(fileDescriptor),
       filter: Int16(EVFILT_VNODE),
-      flags: UInt16(EV_ADD | EV_ENABLE | EV_CLEAR),
+      flags: UInt16(EV_ADD | EV_CLEAR),
       fflags: notification.rawValue,
       data: 0,
-      udata: UnsafeMutableRawPointer(Unmanaged<SKQueuePath>.passRetained(watchedPaths[path]!).toOpaque())
+      udata: nil
     )
-
-    kevent(kqueueId, &ev, 1, nil, 0, &nullts)
+    kevent(kqueueId, &edit, 1, nil, 0, nil)
 
     if !keepWatcherThreadRunning {
       keepWatcherThreadRunning = true
       DispatchQueue.global().async(execute: watcherThread)
     }
-
-    return pathEntry?.fileDescriptor
   }
 
   private func watcherThread() {
-    var ev = kevent(), timeout = timespec(tv_sec: 1, tv_nsec: 0), fd = kqueueId
-
+    var event = kevent()
+    var timeout = timespec(tv_sec: 1, tv_nsec: 0)
     while (keepWatcherThreadRunning) {
-      let n = kevent(fd, nil, 0, &ev, 1, &timeout)
-      if n > 0 && ev.filter == Int16(EVFILT_VNODE) && ev.fflags != 0 {
-        let pathEntry = Unmanaged<SKQueuePath>.fromOpaque(ev.udata).takeUnretainedValue()
-        let notification = SKQueueNotification(rawValue: ev.fflags)
+      if kevent(kqueueId, nil, 0, &event, 1, &timeout) > 0 && event.filter == EVFILT_VNODE && event.fflags > 0 {
+        guard let (path, _) = watchedPaths.first(where: { $1 == event.ident }) else { continue }
+        let notification = SKQueueNotification(rawValue: event.fflags)
         DispatchQueue.global().async {
-          self.delegate?.receivedNotification(notification, path: pathEntry.path, queue: self)
+          self.delegate?.receivedNotification(notification, path: path, queue: self)
         }
       }
     }
@@ -158,8 +113,8 @@ public class SKQueue {
   }
 
   public func removePath(_ path: String) {
-    if let pathEntry = watchedPaths.removeValue(forKey: path) {
-      Unmanaged<SKQueuePath>.passUnretained(pathEntry).release()
+    if let fileDescriptor = watchedPaths.removeValue(forKey: path) {
+      close(fileDescriptor)
     }
   }
 
@@ -172,7 +127,7 @@ public class SKQueue {
   }
 
   public func fileDescriptorForPath(_ path: String) -> Int32 {
-    if let fileDescriptor = watchedPaths[path]?.fileDescriptor {
+    if let fileDescriptor = watchedPaths[path] {
       return fcntl(fileDescriptor, F_DUPFD)
     }
     return -1
