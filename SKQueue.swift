@@ -24,6 +24,7 @@ public enum SKQueueNotificationString: String {
   case LinkCountChange
   case AccessRevocation
   case Unlock
+  case DataAvailable
 }
 
 public struct SKQueueNotification: OptionSet {
@@ -42,6 +43,7 @@ public struct SKQueueNotification: OptionSet {
   public static let LinkCountChange  = SKQueueNotification(rawValue: UInt32(NOTE_LINK))
   public static let AccessRevocation = SKQueueNotification(rawValue: UInt32(NOTE_REVOKE))
   public static let Unlock           = SKQueueNotification(rawValue: UInt32(NOTE_FUNLOCK))
+  public static let DataAvailable    = SKQueueNotification(rawValue: UInt32(NOTE_NONE))
   public static let Default          = SKQueueNotification(rawValue: UInt32(INT_MAX))
 
   public func toStrings() -> [SKQueueNotificationString] {
@@ -54,6 +56,7 @@ public struct SKQueueNotification: OptionSet {
     if contains(.LinkCountChange)  { s.append(.LinkCountChange) }
     if contains(.AccessRevocation) { s.append(.AccessRevocation) }
     if contains(.Unlock)           { s.append(.Unlock) }
+    if contains(.DataAvailable)    { s.append(.DataAvailable) }
     return s
   }
 }
