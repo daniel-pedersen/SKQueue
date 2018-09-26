@@ -169,10 +169,9 @@ public class SKQueue {
   }
 
   public func fileDescriptorForPath(_ path: String) -> Int32 {
-    guard watchedPaths[path] != nil else {
-      return -1
+    if let fileDescriptor = watchedPaths[path]?.fileDescriptor {
+      return fcntl(fileDescriptor, F_DUPFD)
     }
-
-    return fcntl(watchedPaths[path]!.fileDescriptor, F_DUPFD)
+    return -1
   }
 }
