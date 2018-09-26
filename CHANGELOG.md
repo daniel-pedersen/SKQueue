@@ -3,12 +3,15 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [develop]
+## [1.2.0] - 2018-09-27
 ### Added
-- Swift 4 compatibility.
+- Swift 4 support.
+- `Unlock` event notification, for files being unlocked by the `funlock` syscall.
+- `DataAvailable` event notification, to test for `EVFILT_READ` activation.
+- This changelog.
 
-### Changed
-- `addPath` returns the path file descriptor.
+### Removed
+- Logging to the system console.
 
 ## [1.1.0] - 2017-04-25
 ### Added
@@ -26,7 +29,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Swift package manager support.
 
-[2.0.0]: https://github.com/daniel-pedersen/SKQueue/tree/v2.0.0
+[1.2.0]: https://github.com/daniel-pedersen/SKQueue/tree/v1.2.0
 [1.1.0]: https://github.com/daniel-pedersen/SKQueue/tree/v1.1.0
 [1.0.0]: https://github.com/daniel-pedersen/SKQueue/tree/v1.0.0
 [0.9.0]: https://github.com/daniel-pedersen/SKQueue/tree/v0.9.0
