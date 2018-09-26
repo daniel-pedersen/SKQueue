@@ -1,29 +1,32 @@
+___This project is undergoing deprecation. Read the [deprecation notice](https://github.com/daniel-pedersen/SKQueue/issues/11) for more information.___
+
 # SKQueue
-SKQueue is a simple and efficient Swift library that uses kernel event notifications (kernel queues or kqueue) to monitor changes to the filesystem. It allows you to watch any file or folder for changes and be notified immediately when they occur.
+SKQueue is a Swift libary used to monitor changes to the filesystem.
+It wraps the part of the kernel event notification interface of libc, [kqueue](https://en.wikipedia.org/wiki/Kqueue).
+This means SKQueue has a very small footprint and is highly scalable, just like kqueue.
+
+## Requirements
+* Swift tools version 4
+
+To build in older environments just replace `Package.swift` with [this file](https://github.com/daniel-pedersen/SKQueue/blob/v1.1.0/Package.swift).
 
 ## Installation
 
 ### Swift Package Manager
-
-1. Create a new project ex. `swift package init --type executable`
-2. Add SKQueue as a dependency to your Package.swift
+To use SKQueue, add the code below to your `dependencies` in `Package.swift`.
+Then run `swift package fetch` to fetch SKQueue.
 ```swift
-import PackageDescription
-
-let package = Package(
-  name: "SampleProject",
-  dependencies: [
-    .Package(url: "https://github.com/daniel-pedersen/SKQueue.git", majorVersion: 1)
-  ]
-)
+.package(url: "https://github.com/daniel-pedersen/SKQueue.git", from: "1.2.0"),
 ```
-3. Fetch dependencies. `swift package fetch`
-4. (Optional) Generate and open an Xcode project. `swift package generate-xcodeproj && open *.xcodeproj`
 
 ## Usage
+To monitor the filesystem with `SKQueue`, you first need a `SKQueueDelegate` instance that can accept notifications.
+Paths to watch can then be added with `addPath`, as per the example below.
 
 ### Example
 ```swift
+import SKQueue
+
 class SomeClass: SKQueueDelegate {
   func receivedNotification(_ notification: SKQueueNotification, path: String, queue: SKQueue) {
     print("\(notification.toStrings().map { $0.rawValue }) @ \(path)")
@@ -33,16 +36,14 @@ class SomeClass: SKQueueDelegate {
 let delegate = SomeClass()
 let queue = SKQueue(delegate: delegate)!
 
-queue.addPath("/some/file/or/directory")
-queue.addPath("/some/other/file/or/directory")
+queue.addPath("/Users/steve/Documents")
+queue.addPath("/Users/steve/Documents/dog.jpg")
 ```
-
-#### Output samples
-Action | Output
------- | ----------------------
-Add or remove file in `/directory` | `["Write"] @ /directory`
-Add or remove directory in `/directory` | `["Write", "SizeIncrease"] @ /directory`
-Write to file in `/directory/file` | `["Rename", "SizeIncrease"] @ /directory/file`
+|                       Action                        |                         Sample output                         |
+|:---------------------------------------------------:|:-------------------------------------------------------------:|
+|   Add or remove file in `/Users/steve/Documents`    |             `["Write"] @ /Users/steve/Documents`              |
+| Add or remove directory in `/Users/steve/Documents` |     `["Write", "SizeIncrease"] @ /Users/steve/Documents`      |
+|   Write to file `/Users/steve/Documents/dog.jpg`    | `["Rename", "SizeIncrease"] @ /Users/steve/Documents/dog.jpg` |
 
 ## Contributing
 
@@ -51,29 +52,3 @@ Write to file in `/directory/file` | `["Rename", "SizeIncrease"] @ /directory/fi
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
-
-## History
-
-### v1.1
-- Added method fileDescriptorForPath to SKQueue
-- Added delegate parameter to SKQueue initializer
-
-### v1.0
-- New API (see example above)
-- Removed extension of the SKQueueDelegate protocol (see below)
-
-### v0.9
-- Legacy API (see source)
-
-#### Migrating to v1.0
-The naming and ordering of parameters have changed, Xcode points this out at the appropriate locations.
-
-If you have been using the overloaded receivedNotification that takes strings, you need to manually extend SKQueueDelegate as follows
-```swift
-extension SKQueueDelegate {
-  func receivedNotification(_ queue: SKQueue, _ notificationName: SKQueueNotificationString, forPath path: String)
-  func receivedNotification(_ queue: SKQueue, _ notification: SKQueueNotification, forPath path: String) {
-    notification.toStrings().forEach { self.receivedNotification(queue, $0, forPath: path) }
-  }
-}
-```
