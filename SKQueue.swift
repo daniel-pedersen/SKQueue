@@ -23,6 +23,7 @@ public enum SKQueueNotificationString: String {
   case SizeIncrease
   case LinkCountChange
   case AccessRevocation
+  case Unlock
 }
 
 public struct SKQueueNotification: OptionSet {
@@ -33,14 +34,15 @@ public struct SKQueueNotification: OptionSet {
   }
 
   public static let None             = SKQueueNotification(rawValue: 0)
-  public static let Rename           = SKQueueNotification(rawValue: 1 << 0)
-  public static let Write            = SKQueueNotification(rawValue: 1 << 1)
-  public static let Delete           = SKQueueNotification(rawValue: 1 << 2)
-  public static let AttributeChange  = SKQueueNotification(rawValue: 1 << 3)
-  public static let SizeIncrease     = SKQueueNotification(rawValue: 1 << 4)
-  public static let LinkCountChange  = SKQueueNotification(rawValue: 1 << 5)
-  public static let AccessRevocation = SKQueueNotification(rawValue: 1 << 6)
-  public static let Default          = SKQueueNotification(rawValue: 0x7F)
+  public static let Rename           = SKQueueNotification(rawValue: UInt32(NOTE_RENAME))
+  public static let Write            = SKQueueNotification(rawValue: UInt32(NOTE_WRITE))
+  public static let Delete           = SKQueueNotification(rawValue: UInt32(NOTE_DELETE))
+  public static let AttributeChange  = SKQueueNotification(rawValue: UInt32(NOTE_ATTRIB))
+  public static let SizeIncrease     = SKQueueNotification(rawValue: UInt32(NOTE_EXTEND))
+  public static let LinkCountChange  = SKQueueNotification(rawValue: UInt32(NOTE_LINK))
+  public static let AccessRevocation = SKQueueNotification(rawValue: UInt32(NOTE_REVOKE))
+  public static let Unlock           = SKQueueNotification(rawValue: UInt32(NOTE_FUNLOCK))
+  public static let Default          = SKQueueNotification(rawValue: UInt32(INT_MAX))
 
   public func toStrings() -> [SKQueueNotificationString] {
     var s = [SKQueueNotificationString]()
@@ -51,6 +53,7 @@ public struct SKQueueNotification: OptionSet {
     if contains(.SizeIncrease)     { s.append(.SizeIncrease) }
     if contains(.LinkCountChange)  { s.append(.LinkCountChange) }
     if contains(.AccessRevocation) { s.append(.AccessRevocation) }
+    if contains(.Unlock)           { s.append(.Unlock) }
     return s
   }
 }
