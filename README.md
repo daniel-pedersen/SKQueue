@@ -1,19 +1,27 @@
-# SKQueue
-SKQueue is a Swift libary used to monitor changes to the filesystem. It is a wrapper around the kernel event notification interface of libc, i.e. [kqueue](https://en.wikipedia.org/wiki/Kqueue).
+___This project is undergoing deprecation. Read the [deprecation notice](https://github.com/daniel-pedersen/SKQueue/issues/11) for more information.___
 
-SKQueue allocates one file descriptor per path watched and wraps the kernel events around a callback. This means SKQueue has an extremely small footprint and is highly scalable, just like kqueue.
+# SKQueue
+SKQueue is a Swift libary used to monitor changes to the filesystem.
+It wraps the part of the kernel event notification interface of libc, [kqueue](https://en.wikipedia.org/wiki/Kqueue).
+This means SKQueue has a very small footprint and is highly scalable, just like kqueue.
+
+## Requirements
+* Swift tools version 4
+
+To build in older environments just replace `Package.swift` with [this file](https://github.com/daniel-pedersen/SKQueue/blob/v1.1.0/Package.swift).
 
 ## Installation
 
 ### Swift Package Manager
-Add SKQueue to the dependencies array in your `Package.swift`. Then fetch dependencies with `swift package fetch`.
+To use SKQueue, add the code below to your `dependencies` in `Package.swift`.
+Then run `swift package fetch` to fetch SKQueue.
 ```swift
-dependencies: [
-  .package(url: "https://github.com/daniel-pedersen/SKQueue.git", .branch("develop"))
-]
+.package(url: "https://github.com/daniel-pedersen/SKQueue.git", from: "1.2.0"),
 ```
 
 ## Usage
+To monitor the filesystem with `SKQueue`, you first need a `SKQueueDelegate` instance that can accept notifications.
+Paths to watch can then be added with `addPath`, as per the example below.
 
 ### Example
 ```swift
@@ -28,15 +36,14 @@ class SomeClass: SKQueueDelegate {
 let delegate = SomeClass()
 let queue = SKQueue(delegate: delegate)!
 
-queue.addPath("/some/file/or/directory")
-queue.addPath("/some/other/file/or/directory")
+queue.addPath("/Users/steve/Documents")
+queue.addPath("/Users/steve/Documents/dog.jpg")
 ```
-
-|                 Action                 |                     Sample output                     |
-|:--------------------------------------:|:-----------------------------------------------------:|
-|   Add or remove file in `directory`    |               `["Write"] @ /directory`                |
-| Add or remove directory in `directory` |       `["Write", "SizeIncrease"] @ /directory`        |
-| Write to file `directory/example.txt`  | `["Rename", "SizeIncrease"] @ /directory/example.txt` |
+|                       Action                        |                         Sample output                         |
+|:---------------------------------------------------:|:-------------------------------------------------------------:|
+|   Add or remove file in `/Users/steve/Documents`    |             `["Write"] @ /Users/steve/Documents`              |
+| Add or remove directory in `/Users/steve/Documents` |     `["Write", "SizeIncrease"] @ /Users/steve/Documents`      |
+|   Write to file `/Users/steve/Documents/dog.jpg`    | `["Rename", "SizeIncrease"] @ /Users/steve/Documents/dog.jpg` |
 
 ## Contributing
 
