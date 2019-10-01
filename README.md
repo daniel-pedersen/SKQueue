@@ -1,5 +1,3 @@
-___This project is undergoing deprecation. Read the [deprecation notice](https://github.com/daniel-pedersen/SKQueue/issues/11) for more information.___
-
 # SKQueue
 SKQueue is a Swift libary used to monitor changes to the filesystem.
 It wraps the part of the kernel event notification interface of libc, [kqueue](https://en.wikipedia.org/wiki/Kqueue).
